@@ -34,20 +34,39 @@
 
 ### Decision 2: Attack Types to Detect
 
-**Options Considered:**
-- Message flooding (DoS attacks)
-- ID spoofing (fake messages from legitimate IDs)
-- Payload anomalies (out-of-range values)
-- Timing attacks
-- Bus-off attacks
+### Attack Types - Full Analysis
+
+**CAN Bus Attack Types I Researched:**
+
+1. **Message Flooding (DoS)** - IMPLEMENTING ✅
+   - Saturate bus bandwidth with high-frequency messages
+   - Detection: Monitor message frequency per CAN ID
+   
+2. **ID Spoofing** - IMPLEMENTING ✅
+   - Impersonate legitimate ECU by using its CAN ID
+   - Detection: Whitelist validation + duplicate ID detection
+   
+3. **Payload Anomalies** - IMPLEMENTING ✅
+   - Send messages with out-of-range or malicious data
+   - Detection: Range validation on payload fields
+   
+4. **Timing Attacks** - NOT implementing
+   - Disrupt periodic message timing
+   - Would require: Timing analysis of periodic messages (~10 hrs implementation)
+   - Less common in literature, harder to simulate
+   
+5. **Bus-Off Attacks** - NOT implementing
+   - Force ECUs offline by triggering error states
+   - Would require: Hardware-level error monitoring
+   - Cannot simulate reliably in software-only environment
 
 **My Choice:** Focus on flooding, spoofing, and payload anomalies (3 types)
 
-**Rationale:**
-- These 3 cover the most common real-world CAN attacks
-- Well-documented in literature (Jeep hack used spoofing, for example)
-- Can implement and test thoroughly in 30 hours
-- Each has clear detection logic
+**Why I chose flooding, spoofing, and payload:**
+- Most well-documented in literature (used in Jeep hack, other real attacks)
+- Can be simulated with software datasets
+- Cover 80% of real-world attack scenarios
+- Achievable detection implementation in 30-hour timeframe
 
 **Trade-offs:**
 - Not covering timing/bus-off attacks, but those are less common and harder to simulate
