@@ -81,6 +81,6 @@ python evaluate.py
 
 ---
 
-## Dataset
+## Dataset (need to download separately)
 
 [OTIDS — Car Hacking Dataset](https://ocslab.hksecurity.net/Datasets/CAN-intrusion-dataset) by Hyun Min Song et al. (2017). Captured from a Kia Soul. Contains labeled DoS, fuzzy, and impersonation attacks.
