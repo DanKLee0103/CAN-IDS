@@ -98,7 +98,7 @@
 - `FloodingRule` — sliding window frequency detection using a dict of timestamp lists per CAN ID
 - `Detector` — coordinator that runs all rules on each incoming message and collects alerts
 - Project file structure established
-
+```
 CAN-IDS/
 ├── pyproject.toml
 ├── src/
@@ -129,7 +129,7 @@ CAN-IDS/
 │   └── Impersonation_spoof.csv
 └── progress/
     └── checklist.md
-
+```
 
 ### Challenges:
 - Uncertainty in structure due to:
