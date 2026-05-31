@@ -18,6 +18,7 @@
 - [x] Tune rule thresholds based on results
 
 ## Phase 3 — Polish (Weeks 9-10)
-- [ ] Write README with results and numbers
-- [ ] Clean up code, add type hints throughout
-- [ ] Finalize design journal
+- [x] Write README with results and numbers
+- [x] Clean up code
+- [x] Finalize design journal
+- [x] Finalize final report
