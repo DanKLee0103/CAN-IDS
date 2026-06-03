@@ -15,10 +15,10 @@ start = time.time() # for throughput
 #---------------------------------------------------------------
 
 filepaths = [
-    "otids_dataset/attack_free.csv", # target == 0
-    "otids_dataset/DoS_flood.csv", # target == 1
-    "otids_dataset/Fuzzy_spoof_payload.csv", # target == 2
-    "otids_dataset/Impersonation_spoof.csv"  # target == 3
+    "../otids_dataset/attack_free.csv", # target == 0
+    "../otids_dataset/DoS_flood.csv", # target == 1
+    "../otids_dataset/Fuzzy_spoof_payload.csv", # target == 2
+    "../otids_dataset/Impersonation_spoof.csv"  # target == 3
 ]
 
 # true_positives — detector fired an alert AND target > 0 (correctly caught an attack)
@@ -41,7 +41,7 @@ valid_ids = [int(x, 16) for x in \
             ]
 
 detector = Detector(count=125, whitelist=valid_ids)
-with open("otids_dataset/Impersonation_spoof.csv") as f:
+with open("../otids_dataset/Impersonation_spoof.csv") as f:
     first_row = next(csv.DictReader(f))
     impersonation_start = float(first_row["TS"])
 
@@ -54,7 +54,7 @@ for path in filepaths:
         # According to the dataset
         # Impersonation Attack: 0-250 sec is attack-free, 
         # after 250 sec is under attack. But all rows are labeled target=3.
-        if path == "otids_dataset/Impersonation_spoof.csv" and msg.timestamp < impersonation_start + 250:
+        if path == "../otids_dataset/Impersonation_spoof.csv" and msg.timestamp < impersonation_start + 250:
             continue  # skip the attack-free period
             
         alert_len = len(detector.process(msg))
