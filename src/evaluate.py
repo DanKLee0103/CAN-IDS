@@ -1,7 +1,8 @@
 from typing import Dict, Optional, Tuple
 
-from can_ids.loader import loader
 from can_ids.detector import Detector
+from can_ids.extract import get_mean_intervals, get_baseline_slopes
+from can_ids.loader import loader
 import csv
 
 import time
@@ -20,6 +21,9 @@ filepaths = [
     "../otids_dataset/Fuzzy_spoof_payload.csv", # target == 2
     "../otids_dataset/Impersonation_spoof.csv"  # target == 3
 ]
+
+mean_intervals = get_mean_intervals("../otids_dataset/attack_free.csv")
+baseline_slopes = get_baseline_slopes("../otids_dataset/attack_free.csv", mean_intervals)
 
 # true_positives — detector fired an alert AND target > 0 (correctly caught an attack)
 # false_negatives — detector fired no alert AND target > 0 (missed an attack)
@@ -40,7 +44,7 @@ valid_ids = [int(x, 16) for x in \
              '0517', '0440', '0329'] \
             ]
 
-detector = Detector(count=125, whitelist=valid_ids)
+detector = Detector(count=125, whitelist=valid_ids, mean_gaps=mean_intervals, slopes = baseline_slopes)
 with open("../otids_dataset/Impersonation_spoof.csv") as f:
     first_row = next(csv.DictReader(f))
     impersonation_start = float(first_row["TS"])
