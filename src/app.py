@@ -38,12 +38,14 @@ valid_ids = [int(x, 16) for x in
 def stream():
     dataset = request.args.get('dataset', 'attack_free')
     warmup = int(request.args.get('warmup', 20000))
+    flood_threshold = int(request.args.get('flood_threshold', 125))
+    cs_range = float(request.args.get('cs_range', 1e-4))
     path = f"../otids_dataset/{dataset}.csv"
 
     def generate():
         start = time.time()
 
-        detector = Detector(count=125, whitelist=valid_ids, mean_gaps=mean_intervals, slopes=baseline_slopes)
+        detector = Detector(count=flood_threshold, whitelist=valid_ids, mean_gaps=mean_intervals, slopes=baseline_slopes, error_range=cs_range)
 
         with open("../otids_dataset/Impersonation_spoof.csv") as f:
             first_row = next(csv.DictReader(f))
@@ -52,6 +54,9 @@ def stream():
         true_positives = false_positives = true_negatives = false_negatives = 0
         messages_processed = 0
         pending_alerts = []
+        flood_ids = set()
+        spoof_ids = set()
+        clockskew_ids = set()
 
         if dataset != 'attack_free':
             yield f"data: {json.dumps({'status': 'warming_up', 'messages_processed': 0})}\n\n"
@@ -59,6 +64,9 @@ def stream():
                 detector.process(msg)
                 if warmup > 0 and i >= warmup:
                     break
+            for rule in detector.rules:
+                if rule.name != "ClockskewRule":
+                    rule.reset()
 
         messages = loader(filepath=path)
 
@@ -70,7 +78,14 @@ def stream():
             alerts = detector.process(msg)
 
             if len(alerts) > 0:
-                pending_alerts.extend(alerts)
+                for alert in alerts:
+                    pending_alerts.append(alert)
+                    if alert.startswith("Flood"):
+                        flood_ids.add(msg.id)
+                    elif alert.startswith("Spoof"):
+                        spoof_ids.add(msg.id)
+                    elif alert.startswith("Clockskew"):
+                        clockskew_ids.add(msg.id)
                 if target == 0:
                     false_positives += 1
                 elif target > 0:
@@ -82,13 +97,13 @@ def stream():
                     false_negatives += 1
 
             if messages_processed % 2000 == 0:
-                yield f"data: {json.dumps({'messages_processed': messages_processed, 'true_positives': true_positives, 'false_positives': false_positives, 'true_negatives': true_negatives, 'false_negatives': false_negatives, 'alerts': pending_alerts[-10:]})}\n\n"
+                yield f"data: {json.dumps({'messages_processed': messages_processed, 'true_positives': true_positives, 'false_positives': false_positives, 'true_negatives': true_negatives, 'false_negatives': false_negatives, 'alerts': pending_alerts[-10:], 'flood_count': len(flood_ids), 'spoof_count': len(spoof_ids), 'clockskew_count': len(clockskew_ids)})}\n\n"
                 pending_alerts = []
 
         elapsed = time.time() - start
         detection_rate = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
         false_positive_rate = false_positives / (false_positives + true_negatives) if (false_positives + true_negatives) > 0 else 0
-        yield f"data: {json.dumps({'messages_processed': messages_processed, 'true_positives': true_positives, 'false_positives': false_positives, 'true_negatives': true_negatives, 'false_negatives': false_negatives, 'detection_rate': round(detection_rate * 100, 2), 'false_positive_rate': round(false_positive_rate * 100, 2), 'elapsed': round(elapsed, 2), 'done': True})}\n\n"
+        yield f"data: {json.dumps({'messages_processed': messages_processed, 'true_positives': true_positives, 'false_positives': false_positives, 'true_negatives': true_negatives, 'false_negatives': false_negatives, 'detection_rate': round(detection_rate * 100, 2), 'false_positive_rate': round(false_positive_rate * 100, 2), 'elapsed': round(elapsed, 2), 'flood_count': len(flood_ids), 'spoof_count': len(spoof_ids), 'clockskew_count': len(clockskew_ids), 'done': True})}\n\n"
 
     return Response(generate(), mimetype='text/event-stream')
     
