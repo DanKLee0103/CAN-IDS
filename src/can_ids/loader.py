@@ -6,7 +6,6 @@ def loader(filepath: str):
     """
     Loads OTIDS dataset into IDS
     """
-    messages = []
 
     with open(filepath, 'r') as file:
         reader = csv.DictReader(file)
@@ -26,5 +25,4 @@ def loader(filepath: str):
                 else:
                     payload.append(int(dlc, 16))
             payload = bytes(payload)
-            messages.append((Message(id=id, payload=payload, timestamp=ts), int(row["target"])))
-    return messages
+            yield (Message(id=id, payload=payload, timestamp=ts), int(row["target"]))
