@@ -6,7 +6,6 @@ from can_ids.loader import loader
 import csv
 
 import time
-start = time.time() # for throughput
 
 #---------------------------------------------------------------
 # This is the core file that evaluates the functionality
@@ -49,10 +48,12 @@ with open("../otids_dataset/Impersonation_spoof.csv") as f:
     first_row = next(csv.DictReader(f))
     impersonation_start = float(first_row["TS"])
 
+start = time.time() # for throughput
+
 # for loop for all filepaths  
 for path in filepaths:
     messages = loader(filepath=path)
-    total_msgs = len(messages)
+    total_msgs = 0
 
     for msg, target in messages:
         # According to the dataset

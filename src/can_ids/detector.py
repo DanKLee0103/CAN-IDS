@@ -12,10 +12,10 @@ from .rules.clockskew import ClockskewRule
 
 class Detector:
     
-    def __init__(self, count=20, whitelist=None, mean_gaps=None, slopes=None): # arbitrary count as default
+    def __init__(self, count=20, whitelist=None, mean_gaps=None, slopes=None, error_range=1e-4):
         self.rules = [FloodingRule(count), SpoofingRule(whitelist), PayloadRule()]
         if mean_gaps is not None and slopes is not None:
-            self.rules.append(ClockskewRule(mean_gaps, slopes))
+            self.rules.append(ClockskewRule(mean_gaps, slopes, error_range))
         self.alerts = []
 
     def process(self, message) -> List[str]:

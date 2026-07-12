@@ -1,32 +1,29 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from ..message import Message
 import numpy as np
 
 class ClockskewRule:
     name = "ClockskewRule"
 
-    def __init__(self, mean_intervals: dict, slopes: dict):
-        self.first_timestamps = {} # arb_id -> very first timestamp ever seen
-        self.timestamps = defaultdict(list) # arb_id -> list of (global_index, timestamp)
-        self.msg_counts = defaultdict(int) # arb_id -> cumulative count (never resets)
+    def __init__(self, mean_intervals: dict, slopes: dict, error_range: float = 1e-4):
+        self.first_timestamps = {}
+        self.timestamps = defaultdict(lambda: deque(maxlen=200))
+        self.msg_counts = defaultdict(int)
         self.mean_intervals = mean_intervals
         self.baseline_slopes = slopes
-        self.error_range = 10**(-4)
-        
+        self.error_range = error_range
+
     def check(self, message:Message):
         if message.id not in self.first_timestamps:
             self.first_timestamps[message.id] = message.timestamp
-        
+
         self.msg_counts[message.id] += 1
         self.timestamps[message.id].append([self.msg_counts[message.id], message.timestamp])
-
-        # trim to last 200 if over 200
-        if len(self.timestamps[message.id]) > 200:
-            self.timestamps[message.id] = self.timestamps[message.id][-200:]
         
         # early return if < 30 or ID not in baseline
         if len(self.timestamps[message.id]) < 30 or message.id not in self.baseline_slopes:
             return None
+
 
         indices, ts_vals = zip(*self.timestamps[message.id])
         first = self.first_timestamps[message.id]
@@ -40,6 +37,6 @@ class ClockskewRule:
         return None
 
     def reset(self):
-        self.timestamps = defaultdict(list)
+        self.timestamps = defaultdict(lambda: deque(maxlen=200))
         self.first_timestamps = {}
         self.msg_counts = defaultdict(int)
